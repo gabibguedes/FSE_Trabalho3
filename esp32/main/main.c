@@ -6,7 +6,7 @@
 #include "dht11.h"
 
 #define LED_PIN 2
-#define SENSOR_PIN 15
+#define SENSOR_PIN 4
 
 void app_main(void) {
   int led_mode = 0;
@@ -24,10 +24,12 @@ void app_main(void) {
   DHT11_init(SENSOR_PIN);
 
   while(true){
-    sensor_read = DHT11_read();
+    // Blink LED
     gpio_set_level(LED_PIN, led_mode);
     led_mode = !led_mode;
 
+    // Read sensor
+    sensor_read = DHT11_read();
     printf("Temperature: %d C\n", sensor_read.temperature);
     printf("Humidade: %d %%\n\n", sensor_read.humidity);
     fflush(stdout);
