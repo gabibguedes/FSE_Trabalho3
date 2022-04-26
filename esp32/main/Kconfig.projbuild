@@ -1,0 +1,27 @@
+menu "Configuração do Wifi e Conexão MQTT"
+
+  config ESP_WIFI_SSID
+    string "WiFi SSID"
+    default "[Nome do WiFi]"
+    help
+      Nome da rede Wifi.
+
+  config ESP_WIFI_PASSWORD
+    string "Senha do Wifi"
+    default "[Senha do WiFi]"
+    help
+      Senha do WiFi (WPA or WPA2).
+
+  config ESP_MQTT_URL
+    string "MQTT URL"
+    default "mqtt://[IP do Computador]:1883"
+    help
+      Endpoint de conexão com o MQTT. Se o MQTT Broker estiver rodando pelo docker do projeto,
+      a url deve seguir o seguinte formato: mqtt://[IP da sua máquina]:1883
+
+  config ESP_MAXIMUM_RETRY
+    int "Número máximo de tentativas de conexão"
+    default 5
+    help
+      Configure o valor máximo de tentativas de conexão.
+endmenu
