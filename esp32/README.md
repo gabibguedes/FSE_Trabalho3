@@ -29,5 +29,7 @@ To monitor the ESP32 program execution log by your computer's terminal interface
 idf.py -p [PORT] monitor
 ```
 
+Press `Ctrl + ]` to exit.
+
 ## Docs
 - [ESP32 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html)
