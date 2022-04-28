@@ -36,7 +36,11 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
   case MQTT_EVENT_CONNECTED:
     ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
     xSemaphoreGive(mqtt_conection_semaphore);
-    msg_id = esp_mqtt_client_subscribe(client, "servidor/resposta", 0);
+    // TODO: Subscribe correctly fse2021/<matricula>/dispositivos/<ID_do_dispositivo>
+    // TODO: wait for return message informing the room name, fse2021/<matricula>/<cômodo>
+    // TODO: This step must persist in memory (NVS)
+    msg_id = esp_mqtt_client_subscribe(client, "fse2021/<matricula>/dispositivos/<ID_do_dispositivo>", 0);
+
     break;
   case MQTT_EVENT_DISCONNECTED:
     ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
@@ -72,8 +76,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
   mqtt_event_handler_cb(event_data);
 }
 
-void mqtt_start()
-{
+void mqtt_start() {
   esp_mqtt_client_config_t mqtt_config = {
       .uri = MQTT_URL,
   };
@@ -82,8 +85,28 @@ void mqtt_start()
   esp_mqtt_client_start(client);
 }
 
-void mqtt_envia_mensagem(char *topico, char *mensagem)
-{
-  int message_id = esp_mqtt_client_publish(client, topico, mensagem, 0, 1, 0);
-  ESP_LOGI(TAG, "Mesnagem enviada, ID: %d, TOPICO: %s", message_id, topico);
+void send_json_mqtt_message(char* topic, char *message){
+  char full_topic[50];
+  sprintf(full_topic, "fse2021/<matricula>/<cômodo>/%s", topic);
+  send_mqtt_message(full_topic, message);
+}
+
+void send_int_message(char* topic, int value){
+  char message[20];
+  sprintf(message, "{ \"value\": %d }", value);
+  send_json_mqtt_message(topic, message);
+}
+
+void send_float_message(char* topic, float value){
+  char message[20];
+  sprintf(message, "{ \"value\": %f }", value);
+  send_json_mqtt_message(topic, message);
+}
+
+void send_mqtt_message(char *topico, char *mensagem){
+  if (xSemaphoreTake(mqtt_conection_semaphore, portMAX_DELAY)){
+    int message_id = esp_mqtt_client_publish(client, topico, mensagem, 0, 1, 0);
+    ESP_LOGI(TAG, "Mesnagem enviada, ID: %d, TOPICO: %s", message_id, topico);
+    xSemaphoreGive(mqtt_conection_semaphore);
+  }
 }
