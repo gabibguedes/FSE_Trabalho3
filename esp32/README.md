@@ -10,6 +10,13 @@ Build the project using the following command:
 idf.py build
 ```
 
+### Set config variables
+
+To run this project you must conect the ESP32 to your local wifi and the project's MQTT broker. Open the menu config with the command bellow and set the correct values.
+
+```
+idf.py menuconfig
+```
 ### Find your ESP32 port
 
 Find the port used to connect with ESP32. The default port on MacOS is `/dev/cu.usbserial-0001`. To verify run the `ls /dev` command before and after connecting your ESP32. The diferent path that appears after connecting is the ESP32 port.

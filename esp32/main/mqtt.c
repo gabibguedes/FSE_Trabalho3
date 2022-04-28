@@ -23,7 +23,7 @@
 #define TAG "MQTT"
 #define MQTT_URL CONFIG_ESP_MQTT_URL
 
-extern SemaphoreHandle_t conexaoMQTTSemaphore;
+extern SemaphoreHandle_t mqtt_conection_semaphore;
 esp_mqtt_client_handle_t client;
 
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
@@ -35,7 +35,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
   {
   case MQTT_EVENT_CONNECTED:
     ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-    xSemaphoreGive(conexaoMQTTSemaphore);
+    xSemaphoreGive(mqtt_conection_semaphore);
     msg_id = esp_mqtt_client_subscribe(client, "servidor/resposta", 0);
     break;
   case MQTT_EVENT_DISCONNECTED:

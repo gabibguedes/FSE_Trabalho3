@@ -84,3 +84,6 @@ dependencies.lock
 
 # Sublime Project
 .sublime-project
+
+sdkconfig
+sdkconfig.old

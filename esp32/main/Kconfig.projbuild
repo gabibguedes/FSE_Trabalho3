@@ -24,4 +24,11 @@ menu "Configuração do Wifi e Conexão MQTT"
     default 5
     help
       Configure o valor máximo de tentativas de conexão.
+
+  config ESP_MODE
+    int "Configuração do modo de atuação da ESP 32"
+    default 1
+    help
+      Configure o modo que a ESP deverá funcionar. Selecione 1 para Bateria e 2 para Energia.
+
 endmenu

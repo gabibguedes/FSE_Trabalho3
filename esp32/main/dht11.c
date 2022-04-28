@@ -1,18 +1,18 @@
 /*
  * MIT License
- * 
+ *
  * Copyright (c) 2018 Michele Biondi
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,8 +27,11 @@
 #include "rom/ets_sys.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_log.h"
 
 #include "dht11.h"
+
+#define TAG "DHT11"
 
 static gpio_num_t dht_gpio;
 static int64_t last_read_time = -2000000;
@@ -36,8 +39,8 @@ static struct dht11_reading last_read;
 
 static int _waitOrTimeout(uint16_t microSeconds, int level) {
     int micros_ticks = 0;
-    while(gpio_get_level(dht_gpio) == level) { 
-        if(micros_ticks++ > microSeconds) 
+    while(gpio_get_level(dht_gpio) == level) {
+        if(micros_ticks++ > microSeconds)
             return DHT11_TIMEOUT_ERROR;
         ets_delay_us(1);
     }
@@ -66,7 +69,7 @@ static int _checkResponse() {
         return DHT11_TIMEOUT_ERROR;
 
     /* Wait for next step ~80us*/
-    if(_waitOrTimeout(80, 1) == DHT11_TIMEOUT_ERROR) 
+    if(_waitOrTimeout(80, 1) == DHT11_TIMEOUT_ERROR)
         return DHT11_TIMEOUT_ERROR;
 
     return DHT11_OK;
@@ -102,13 +105,13 @@ struct dht11_reading DHT11_read() {
 
     if(_checkResponse() == DHT11_TIMEOUT_ERROR)
         return last_read = _timeoutError();
-    
+
     /* Read response */
     for(int i = 0; i < 40; i++) {
         /* Initial data */
         if(_waitOrTimeout(50, 0) == DHT11_TIMEOUT_ERROR)
             return last_read = _timeoutError();
-                
+
         if(_waitOrTimeout(70, 1) > 28) {
             /* Bit received was a 1 */
             data[i/8] |= (1 << (7-(i%8)));
@@ -119,6 +122,9 @@ struct dht11_reading DHT11_read() {
         last_read.status = DHT11_OK;
         last_read.temperature = data[2];
         last_read.humidity = data[0];
+        ESP_LOGI(TAG, "Temperature: %d C", last_read.temperature);
+        ESP_LOGI(TAG, "Humidity: %d %%", last_read.humidity);
+
         return last_read;
     } else {
         return last_read = _crcError();
