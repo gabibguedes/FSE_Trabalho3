@@ -122,8 +122,6 @@ struct dht11_reading DHT11_read() {
         last_read.status = DHT11_OK;
         last_read.temperature = data[2];
         last_read.humidity = data[0];
-        ESP_LOGI(TAG, "Temperature: %d C", last_read.temperature);
-        ESP_LOGI(TAG, "Humidity: %d %%", last_read.humidity);
 
         return last_read;
     } else {

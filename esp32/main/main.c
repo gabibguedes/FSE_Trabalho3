@@ -3,10 +3,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
+#include "esp_system.h"
+#include "esp_mac.h"
 
 #include "app.h"
 #include "wifi.h"
 #include "mqtt.h"
+#include "nvs.h"
 
 SemaphoreHandle_t wifi_connection_semaphore;
 SemaphoreHandle_t mqtt_conection_semaphore;
@@ -28,9 +31,6 @@ void initialize_conections(){
 }
 
 void app_main(void) {
-  // TODO: verify if esp is already subscribed and has a room name saved in NVS
-  // TODO: Add MQTT ping to know the device is ON or OFF
-
   // Inicializa o NVS
   esp_err_t ret = nvs_flash_init();
   if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -40,5 +40,5 @@ void app_main(void) {
   ESP_ERROR_CHECK(ret);
 
   initialize_conections();
-  app_loop();
+  init_app();
 }

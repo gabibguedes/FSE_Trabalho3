@@ -11,15 +11,15 @@
 
 #include "dht11.h"
 #include "mqtt.h"
+#include "nvs.h"
+#include "gpio.h"
 
 #define TAG "APP"
 #define MODE CONFIG_ESP_MODE
 
-#define BUTTON_PIN 0
-#define LED_PIN 2
-#define SENSOR_PIN 4
-
 extern SemaphoreHandle_t mqtt_conection_semaphore;
+
+SemaphoreHandle_t is_registered_semaphore;
 
 void read_sensor_input(void *params){
   struct dht11_reading sensor_read;
@@ -48,36 +48,25 @@ void read_sensor_input(void *params){
   }
 }
 
+void send_working_status(void *params){
+  while (true){
+    send_im_alive_signal();
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
+  }
+}
+
 void read_button_input(void *params){
   int tmp_btn_level, button_level = 1;
 
   while (true){
-    tmp_btn_level = gpio_get_level(BUTTON_PIN);
-
+    tmp_btn_level = get_button_level();
     if(tmp_btn_level != button_level){
       button_level = tmp_btn_level;
       ESP_LOGI(TAG, "BUTTON PRESSED");
       send_int_message("estado", button_level);
     }
-
     vTaskDelay(10 / portTICK_PERIOD_MS);
   }
-}
-
-void set_button_gpio(){
-  esp_rom_gpio_pad_select_gpio(BUTTON_PIN);
-  gpio_set_direction(BUTTON_PIN, GPIO_MODE_INPUT);
-}
-
-void set_all_gpios(){
-  set_button_gpio();
-
-  esp_rom_gpio_pad_select_gpio(LED_PIN);
-  gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
-
-  esp_rom_gpio_pad_select_gpio(SENSOR_PIN);
-  gpio_set_direction(SENSOR_PIN, GPIO_MODE_INPUT);
-  DHT11_init(SENSOR_PIN);
 }
 
 void battery_loop(){
@@ -89,13 +78,28 @@ void energy_loop(){
   set_all_gpios();
   xTaskCreate(&read_sensor_input, "Read DHT11 sensor input", 4096, NULL, 1, NULL);
   xTaskCreate(&read_button_input, "Read button input", 4096, NULL, 1, NULL);
+  xTaskCreate(&send_working_status, "Send alive signal", 4096, NULL, 1, NULL);
+}
+
+void check_already_registered(){
+  char *room = read_nvs_room();
+  app_is_registered = 0;
+
+  if(strlen(room) > 0){
+    ESP_LOGI(TAG, "ALREDY REGISTERED TO ROOM %s", room);
+    app_is_registered = 1;
+    strcpy(app_room, room);
+    app_loop();
+  }
+}
+
+void init_app(){
+  check_already_registered();
+  register_to_mqtt();
 }
 
 void app_loop(){
-  // TODO: Implement Led as an exit representing lamps and air conditioning
-  // TODO: Make Led dimerable
-  // TODO: Use MAC Address as device ID
-
+  ESP_LOGI(TAG, "START APP LOOP");
   switch (MODE) {
   case BATERY:
     ESP_LOGI(TAG, "BATERY MODE SELECTED");

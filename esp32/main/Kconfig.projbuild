@@ -1,4 +1,4 @@
-menu "Configuração do Wifi e Conexão MQTT"
+menu "Configuração da aplicação"
 
   config ESP_WIFI_SSID
     string "WiFi SSID"
@@ -30,5 +30,11 @@ menu "Configuração do Wifi e Conexão MQTT"
     default 1
     help
       Configure o modo que a ESP deverá funcionar. Selecione 1 para Bateria e 2 para Energia.
+
+  config ESP_REGISTER
+    string "Matricula"
+    default 160121612
+    help
+      Matricula utilizada na conexão ao MQTT.
 
 endmenu

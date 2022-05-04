@@ -6,6 +6,10 @@ typedef enum app_mode {
   ENERGY=2
 } AppMode;
 
+char app_room[20];
+int app_is_registered;
+
 void app_loop();
+void init_app();
 
 #endif
