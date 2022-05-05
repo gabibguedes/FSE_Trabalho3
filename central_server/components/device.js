@@ -4,19 +4,28 @@ import Typography from '@mui/material/Typography';
 import useMqtt from '../hooks/useMqtt'
 import Button from '@mui/material/Button';
 import { useDataContext } from '../contexts/data'
+import axios from 'axios'
 
 import { ENERGY_MODE } from '../models/esp32'
 
 const REGISTER = process.env.NEXT_PUBLIC_REGISTER
+const CENTRAL_SERVER = process.env.NEXT_PUBLIC_CENTRAL_SERVER
+
 let pingDate = Date.now()
 
 const Device = ({device}) => {
-  const { alarm, onAlarmDetected, onAlarmStop } = useDataContext()
+  const { alarm, onAlarmDetected, onAlarmStop, removeDevice } = useDataContext()
   const [temperature, setTemp] = useState(0)
   const [humidity, setHumidity] = useState(0)
   const [ledState, setLedState] = useState(false)
   const [buttonState, setBtnState] = useState(false)
   const [connected, setConnected] = useState(true)
+
+  const updateLog = (action, value) => {
+    axios.post(`${CENTRAL_SERVER}/api/log`, {
+      ...device, action, value, modeName: device.getMode()
+    })
+  }
 
   const {
     mqttConnect,
@@ -48,20 +57,16 @@ const Device = ({device}) => {
    }, [payload])
 
    useEffect(() => {
-    if(buttonState && alarm){
+    if(buttonState && alarm && device.shouldAlarm){
       onAlarmDetected()
-      console.log('aaaaaaaaaaaa')
+      updateLog('alarm', 1)
     } else {
       onAlarmStop()
+      updateLog('alarm', 0)
     }
 
    }, [buttonState, alarm])
 
-  const changeState = () => {
-    const output = ledState ? 0 : 1
-    mqttSend(`fse2021/${REGISTER}/dispositivos/${device.id}`, { output })
-    setLedState(!ledState)
-  }
   useEffect(() => {
     const timerId = setInterval(() => {
       checkStatus()
@@ -69,11 +74,21 @@ const Device = ({device}) => {
     return () => clearInterval(timerId)
   }, [])
 
+  const changeState = () => {
+    const output = ledState ? 0 : 1
+    mqttSend(`fse2021/${REGISTER}/dispositivos/${device.id}`, { output })
+    setLedState(!ledState)
+    updateLog('output', output)
+  }
 
   const checkStatus = () => {
     const now = Date.now()
     var difference = (now - pingDate) / 1000;
     setConnected(!(difference > 30))
+  }
+
+  const deleteDevice = () => {
+    removeDevice(device.id)
   }
 
   return (
@@ -109,7 +124,7 @@ const Device = ({device}) => {
             <b>Umidade:</b> {humidity.toFixed(2)}%
           </Typography>
           <Typography>
-            <b>Estado da saída:</b> <b style={{color: ledState ? 'green' : 'red'}}>
+            <b>{device.output}:</b> <b style={{color: ledState ? 'green' : 'red'}}>
               {ledState? 'ON' : 'OFF'}
             </b>
           </Typography>
@@ -118,7 +133,7 @@ const Device = ({device}) => {
 
 
       <Typography>
-        <b>Estado da entrada:</b> <b style={{color: buttonState ? 'green' : 'red'}}>
+        <b>{device.input}:</b> <b style={{color: buttonState ? 'green' : 'red'}}>
           {buttonState? 'ON' : 'OFF'}
         </b>
       </Typography>
@@ -128,9 +143,16 @@ const Device = ({device}) => {
           variant="contained"
           onClick={changeState}
         >
-          {ledState ? 'desligar' : 'ligar'}
+          {ledState ? 'desligar' : 'ligar'} {device.output}
         </Button>
       }
+      <Button
+          sx={{ mt: 2, width: '100%' }}
+          color="error"
+          onClick={deleteDevice}
+        >
+          Remover dispositivo
+        </Button>
     </Box>
   )
 }

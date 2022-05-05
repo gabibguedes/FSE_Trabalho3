@@ -2,10 +2,13 @@ export const BATERY_MODE = 1
 export const ENERGY_MODE = 2
 
 export class Esp32Device{
-  constructor(id, mode, room) {
+  constructor(id, mode) {
     this.id = id
     this.mode = mode
-    this.room = room
+    this.room = ''
+    this.shouldAlarm = false
+    this.input = ''
+    this.output = ''
   }
 
   getMode(){

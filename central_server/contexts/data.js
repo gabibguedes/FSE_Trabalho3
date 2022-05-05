@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useRef
 } from 'react';
+import axios from 'axios'
 
 const DataContext = createContext();
 
@@ -33,10 +34,14 @@ const DataProvider = ({ children }) => {
     setNumberOfAlarms(num)
   }
 
+  const removeDevice = (id) => {
+    const newList = esp32List.filter((elem) => elem.id !== id)
+    setEsp32List(newList)
+  }
+
   useEffect(() => {
      console.log('NO EFEITO', numberOfAlarms, isPlayingAlarm)
     if(numberOfAlarms > 0 && !isPlayingAlarm){
-      console.log('deveria tocar')
       audio.play()
       setIsPlayingAlarm(true)
     } else if (isPlayingAlarm && numberOfAlarms === 0) {
@@ -56,7 +61,8 @@ const DataProvider = ({ children }) => {
       setAlarm,
       onAlarmDetected,
       onAlarmStop,
-      setAudio
+      setAudio,
+      removeDevice
     }}
     >
       { children }

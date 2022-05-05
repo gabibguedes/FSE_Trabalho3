@@ -6,6 +6,7 @@ import TextField from '@mui/material/TextField';
 import Modal from '@mui/material/Modal';
 import { useDataContext } from '../contexts/data'
 import { Esp32Device, ENERGY_MODE, BATERY_MODE } from '../models/esp32'
+import Switch from '@mui/material/Switch';
 
 const style = {
   position: 'absolute',
@@ -22,13 +23,19 @@ const style = {
 
 const AddEsp32Modal = ({ open, close, deviceFound, sendMessage }) => {
   const [roomName, setRoomName] = useState('')
+  const [input, setInput] = useState('')
+  const [output, setOutput] = useState('')
+  const [shouldAlarm, setShouldAlarm] = useState(true)
   const [error, setError] = useState(false)
   const { addEsp32 } = useDataContext()
-  const device = new Esp32Device(deviceFound?.message?.id, deviceFound?.message?.mode, '')
+  const device = new Esp32Device(deviceFound?.message?.id, deviceFound?.message?.mode)
 
   const saveEsp32 = () => {
     if(roomName){
       device.room = roomName
+      device.shouldAlarm = shouldAlarm
+      device.input = input
+      device.output = output
       addEsp32(device)
       sendMessage(roomName, deviceFound.topic)
       close()
@@ -60,8 +67,18 @@ const AddEsp32Modal = ({ open, close, deviceFound, sendMessage }) => {
         <Typography id="modal-modal-description" >
           <b>ID:</b> {device.id}
         </Typography>
+        <div style={{display: 'flex'}}>
+            <p><b>Alarme</b></p>
+
+          <Switch
+            sx={{alignSelf: 'center'}}
+            onChange={() => setShouldAlarm(!shouldAlarm)}
+            checked={shouldAlarm}
+            inputProps={{ 'aria-label': 'controlled' }}
+          />
+        </div>
         <TextField
-          sx={{ mt: 3, width: '100%' }}
+          sx={{ mt: 2, width: '100%' }}
           id="outlined-required"
           label="Nome do comodo"
           error={error}
@@ -69,9 +86,37 @@ const AddEsp32Modal = ({ open, close, deviceFound, sendMessage }) => {
           value={roomName}
           onChange={(e) => {
             setError(false)
-            setRoomName(event.target.value)
+            setRoomName(event.target.value.replace(/[^a-zA-Z]/g, ""))
           }}
         />
+        <TextField
+          sx={{ mt: 2, width: '100%' }}
+          id="outlined-required"
+          label="Nome do valor de entrada"
+          placeholder="ex.: sensor"
+          error={error}
+          required={error}
+          value={input}
+          onChange={(e) => {
+            setError(false)
+            setInput(event.target.value)
+          }}
+        />
+        {device.mode === ENERGY_MODE &&
+          <TextField
+            sx={{ mt: 2, width: '100%' }}
+            id="outlined-required"
+            label="Nome do valor de saída"
+            placeholder="ex.: Ar condicionado"
+            error={error}
+            required={error}
+            value={output}
+            onChange={(e) => {
+              setError(false)
+              setOutput(event.target.value)
+            }}
+          />
+        }
         <Button
           sx={{ mt: 3, width: '100%' }}
           variant="contained"
