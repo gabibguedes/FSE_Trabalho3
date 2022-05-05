@@ -1,17 +1,9 @@
-# Trabalho final
+# Trabalho final de FSE
+
+**Aluna:** Gabriela Barrozo Guedes
+**Matricula:** 16/0121612
 
 ## Servidor Central
-
-### Como rodar
-
-Os serviços do servidor central (Dashboard e MQTT Broker) estão dockerizados, de forma que para roda-los basta utilizar o comando abaixo:
-
-```sh
-docker-compose up
-```
-
-Após a execução do docker, o projeto pode ser acessado em`http://localhost:3000`
-
 ### MQTT Broker
 
 O MQTT broker utilizado pelo o sistema é uma imagem docker do EMQX, configurada via docker-compose.
@@ -24,7 +16,7 @@ Com o serviço rodando é possivel acessar um dashboard do EMQX pela url: `http:
 
 ### Dashboard
 
-O dashboard foi desenvolvido utilizando NextJS e utiliza de variáveis de ambiente configuradas no  arquivo `.env` na raiz do repositório, que são:
+O dashboard foi desenvolvido utilizando NextJS e utiliza de variáveis de ambiente configuradas no arquivo `.env` na raiz do repositório, que são:
 
 * **NEXT_PUBLIC_MQTT_URI** - Endpoint de acesso ao MQTT broker, está configurado para acessar o endpoint do MQTT configurado via docker. Para trocar o MQTT utilizado, basta trocar a url (*OBS.: Caso troque, também será necessário trocar a url nas configurações da ESP32*)
 * **NEXT_PUBLIC_MQTT_CLIENTID** - Identificação do cliente MQTT
@@ -34,9 +26,19 @@ O dashboard foi desenvolvido utilizando NextJS e utiliza de variáveis de ambien
 
 O dashboard estará sendo executado em `http://localhost:3000`
 
+### Como rodar
+
+Os serviços do servidor central (Dashboard e MQTT Broker) estão dockerizados, de forma que para roda-los basta utilizar o comando abaixo:
+
+```sh
+docker-compose up
+```
+
+Após a execução do docker, o projeto pode ser acessado em `http://localhost:3000`
+
 #### Logs
 
-Os logs são salvos em um arquivo `log.csv` na pasta `central_server/`. O CSV possui a seguinte estrutura:
+Os logs são salvos em um arquivo com nome configuravel pelo `.env`, inicialmente definido como `log.csv`. Esse arquivo será salvo na pasta `central_server/`. O CSV possui a seguinte estrutura:
 
 ``` csv
 Data, Id do dispositivo, Nome do Comodo, Modo da ESP32, Ação (output ou alarme), Valor

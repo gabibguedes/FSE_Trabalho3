@@ -40,7 +40,6 @@ const DataProvider = ({ children }) => {
   }
 
   useEffect(() => {
-     console.log('NO EFEITO', numberOfAlarms, isPlayingAlarm)
     if(numberOfAlarms > 0 && !isPlayingAlarm){
       audio.play()
       setIsPlayingAlarm(true)
