@@ -1,55 +1,70 @@
 import MQTT from 'mqtt'
-import { useEffect, useRef } from 'react'
+import { useEffect, useState } from 'react'
 
-function useMqtt({
-  uri,
-  options = {},
-  topicHandlers = [{ topic: '', handler: ({ topic, payload, packet }) => {} }],
-  onConnectedHandler = (client) => {},
-}) {
-  const clientRef = useRef(null)
+const MQTT_HOST = process.env.NEXT_PUBLIC_MQTT_URI
+const CLIENT_ID = process.env.NEXT_PUBLIC_MQTT_CLIENTID
+
+function useMqtt(initialSubscription) {
+  const [client, setClient] = useState(null)
+  const [connectStatus, setConnectStatus] = useState('Disconected')
+  const [payload, setPayload] = useState(null)
+  const [isSub, setIsSub] = useState(false)
+
+  const mqttConnect = () => {
+    setConnectStatus('Connecting')
+    const mqttClient = MQTT.connect(MQTT_HOST, {
+      clientId: CLIENT_ID
+    })
+    setClient(mqttClient)
+  };
 
   useEffect(() => {
-    if (clientRef.current) return
-    if (!topicHandlers || topicHandlers.length === 0) return () => {}
-
-    try {
-      clientRef.current = options
-        ? MQTT.connect(uri, options)
-        : MQTT.connect(uri)
-    } catch (error) {
-      console.error('error', error)
+    if (client) {
+      client.on('connect', () => {
+        setConnectStatus('Connected');
+        mqttSubscribe(initialSubscription)
+      });
+      client.on('error', (err) => {
+        console.error('Connection error: ', err);
+        client.end();
+      });
+      client.on('reconnect', () => {
+        setConnectStatus('Reconnecting');
+      });
+      client.on('message', (topic, message) => {
+        const payload = { topic, message: JSON.parse(message.toString()) };
+        setPayload(payload);
+      });
     }
+  }, [client]);
 
-    const client = clientRef.current
-    topicHandlers.forEach((th) => {
-      client.subscribe(th.topic)
-    })
-    client.on('message', (topic, rawPayload, packet) => {
-      const th = topicHandlers.find((t) => t.topic === topic)
-      let payload
-      try {
-        payload = JSON.parse(rawPayload)
-      } catch {
-        payload = rawPayload
-      }
-      if (th) th.handler({ topic, payload, packet })
-    })
-
-    client.on('connect', () => {
-      if (onConnectedHandler) onConnectedHandler(client)
-    })
-
-    return () => {
-      if (client) {
-        topicHandlers.forEach((th) => {
-          client.unsubscribe(th.topic)
-        })
-        client.end()
-      }
+  const mqttSubscribe = (topic) => {
+    if (client) {
+      client.subscribe( topic, 0, (error) => {
+        if (error) {
+          console.log('Subscribe to topics error', error)
+          return
+        }
+        setIsSub(true)
+      });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  };
+
+  const mqttSend = (topic, payload) => {
+    client.publish(topic, JSON.stringify(payload), 0, error => {
+      if (error) {
+        console.log('Publish error: ', error);
+      }
+    });
+  }
+
+  return {
+    connectStatus,
+    mqttConnect,
+    mqttSubscribe,
+    mqttSend,
+    payload
+  }
 }
 
 export default useMqtt
