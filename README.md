@@ -71,3 +71,7 @@ idf.py -p [Porta da ESP32] flash monitor
 ```
 
 O dispositivo irá se conectar a internet e ao MQTT. No dashboard uma modal será aberta para configurar o novo dispositivo.
+
+## Vídeo
+
+Link para visualização do vídeo do trabalho: https://youtu.be/-48l-C4Hl28
