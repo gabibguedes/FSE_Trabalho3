@@ -115,6 +115,9 @@ const Device = ({device}) => {
       <Typography>
         <b>ID:</b> {device.id}
       </Typography>
+      <Typography>
+        <b>Alarme</b> {device.shouldAlarm? 'ativado' : 'desativado'}
+      </Typography>
       {device.mode === ENERGY_MODE &&
         <>
           <Typography>
